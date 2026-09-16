@@ -1,0 +1,23 @@
+{
+  "version": "2026-09-16",
+  "services": [
+    {
+      "id": "permanent-recruitment",
+      "name": "Permanent recruitment",
+      "matches": ["vacanc", "recruit", "consultant", "registrar"],
+      "priority": 40
+    },
+    {
+      "id": "staff-bank-rpo",
+      "name": "Managed staff bank / RPO",
+      "matches": ["bank", "agency", "temporary staffing", "workforce"],
+      "priority": 80
+    },
+    {
+      "id": "temporary-staffing",
+      "name": "Temporary staffing",
+      "matches": ["agency", "rota", "staffing pressure", "locum"],
+      "priority": 60
+    }
+  ]
+}
