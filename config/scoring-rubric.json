@@ -1,0 +1,54 @@
+{
+  "version": "2026-09-16",
+  "formula": "Versioned evidence bands: fit, substantiation and reviewer validation",
+  "rules": [
+    {
+      "id": "temporary-staff-expenditure",
+      "category": "temporary-staff expenditure",
+      "triggers": ["agency", "bank"],
+      "substantive_matches": ["£", "wte", "spend", "cost", "expenditure", "above cap", "exit plan", "temporary staffing"],
+      "score_bands": [
+        {
+          "id": "measurable-workforce-pressure",
+          "score": 92.5,
+          "score_reasons": ["Clear workforce-service fit", "Explicit spend or staffing evidence", "Recent pack"],
+          "evidence_matches": ["£", "wte", "spend", "cost", "expenditure", "above cap", "exit plan", "temporary staffing"]
+        },
+        {
+          "id": "workforce-pressure",
+          "score": 77.5,
+          "score_reasons": ["Workforce-service fit", "Evidence requires review", "Human validation required"]
+        }
+      ],
+      "proposed_next_action": "Validate the current temporary staffing position and explore bank optimisation."
+    },
+    {
+      "id": "recruitment-activity",
+      "category": "recruitment activity",
+      "triggers": ["recruit", "headhunt"],
+      "substantive_matches": ["vacan", "recruit", "headhunt", "locum", "staffing shortfall", "rota resilience"],
+      "score_bands": [
+        {
+          "id": "specific-recruitment-activity",
+          "score": 82.5,
+          "score_reasons": ["Clear recruitment-service fit", "Specific workforce activity", "Evidence requires review"]
+        }
+      ],
+      "proposed_next_action": "Confirm whether the recruitment activity remains open before proposing support."
+    },
+    {
+      "id": "vacancy-pressure",
+      "category": "vacancy pressure",
+      "triggers": ["vacan"],
+      "substantive_matches": ["vacan"],
+      "score_bands": [
+        {
+          "id": "open-vacancy",
+          "score": 67.5,
+          "score_reasons": ["Specific workforce reference", "Period may be historical", "Human validation required"]
+        }
+      ],
+      "proposed_next_action": "Ask whether the documented gap remains unresolved before suggesting support."
+    }
+  ]
+}

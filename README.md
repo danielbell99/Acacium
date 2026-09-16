@@ -35,6 +35,10 @@ Service-fit labels are resolved from the versioned `config/service-catalogue.jso
 priority rules. This keeps the commercial mapping reviewable and changeable without changing the
 extraction pipeline.
 
+The candidate categories, evidence bands, score reasons and follow-up actions live in
+`config/scoring-rubric.json`. Each extraction records that rubric version alongside its corpus and
+service-catalogue versions.
+
 Original PDFs, derived runtime data, credentials and model artefacts are intentionally excluded from
 Git. The front end only consumes the FastAPI API; it never reads the source PDFs directly.
 

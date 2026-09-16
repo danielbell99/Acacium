@@ -1,4 +1,4 @@
-from acacium.catalogue import load_manifest, load_service_catalogue
+from acacium.catalogue import load_manifest, load_scoring_rubric, load_service_catalogue
 from acacium.settings import get_settings
 
 
@@ -24,3 +24,11 @@ def test_service_catalogue_has_a_specific_temporary_staffing_service() -> None:
         "staff-bank-rpo",
         "temporary-staffing",
     ]
+
+
+def test_scoring_rubric_has_explicit_evidence_bands() -> None:
+    rubric = load_scoring_rubric(get_settings().scoring_rubric_path)
+
+    assert rubric.version == "2026-09-16"
+    assert rubric.rules[0].category == "temporary-staff expenditure"
+    assert rubric.rules[0].score_bands[0].score == 92.5

@@ -13,6 +13,16 @@ def test_documents_endpoint_returns_the_scoped_corpus() -> None:
     assert len(body["documents"]) == 3
 
 
+def test_config_exposes_the_versioned_scoring_rubric() -> None:
+    response = TestClient(app).get("/api/config")
+
+    assert response.status_code == 200
+    assert response.json()["rubric_version"] == "2026-09-16"
+    assert response.json()["score_formula"] == (
+        "Versioned evidence bands: fit, substantiation and reviewer validation"
+    )
+
+
 def test_readiness_confirms_the_local_evidence_corpus() -> None:
     response = TestClient(app).get("/api/health/ready")
 

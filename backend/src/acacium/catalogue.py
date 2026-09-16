@@ -4,7 +4,12 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from acacium.schemas import DocumentList, ServiceCatalogue, SourceDocument
+from acacium.schemas import (
+    DocumentList,
+    ScoringRubric,
+    ServiceCatalogue,
+    SourceDocument,
+)
 
 
 @lru_cache
@@ -17,6 +22,12 @@ def load_manifest(path: Path) -> DocumentList:
 def load_service_catalogue(path: Path) -> ServiceCatalogue:
     raw = json.loads(path.read_text(encoding="utf-8"))
     return ServiceCatalogue.model_validate(raw)
+
+
+@lru_cache
+def load_scoring_rubric(path: Path) -> ScoringRubric:
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return ScoringRubric.model_validate(raw)
 
 
 def find_document(manifest: DocumentList, document_id: str) -> SourceDocument:

@@ -17,7 +17,7 @@ class RunStore:
         self._review_store = review_store
         recovered_runs = review_store.load_runs()
         for run in recovered_runs:
-            snapshot_available = (
+            snapshot_available = run.status is RunStatus.COMPLETED and (
                 run.progress.candidates_found == 0 or review_store.signal_count(run.id) > 0
             )
             if run.snapshot_available != snapshot_available:

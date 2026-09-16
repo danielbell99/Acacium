@@ -4,7 +4,7 @@
     {
       "id": "permanent-recruitment",
       "name": "Permanent recruitment",
-      "matches": ["vacanc", "recruitment", "consultant", "registrar"],
+      "matches": ["vacanc", "recruit", "consultant", "registrar"],
       "priority": 40
     },
     {

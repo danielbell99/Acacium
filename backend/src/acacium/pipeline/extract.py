@@ -8,26 +8,24 @@ from pathlib import Path
 from pypdf import PdfReader
 
 from acacium.integrity import verify_sha256
-from acacium.schemas import Evidence, ServiceCatalogue, Signal, SourceDocument
+from acacium.schemas import (
+    Evidence,
+    ScoreBand,
+    ScoringRubric,
+    ScoringRule,
+    ServiceCatalogue,
+    Signal,
+    SourceDocument,
+)
 
-_KEYWORDS = re.compile(
-    r"\b(agency|bank|vacan(?:cy|cies)|recruit(?:ment|ing)|headhunt(?:ing)?|WTE|staffing)\b",
-    re.IGNORECASE,
-)
 _SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+|\n{2,}")
-_TEMPORARY_STAFFING_CONTEXT = re.compile(
-    r"(£|\b\d+(?:\.\d+)?\s*WTE\b|spend|cost|expenditure|above cap|exit plan|temporary staffing)",
-    re.IGNORECASE,
-)
-_RECRUITMENT_CONTEXT = re.compile(
-    r"(vacan|recruit|headhunt|locum|staffing shortfall|rota resilience)", re.IGNORECASE
-)
 
 
 def extract_document(
     document: SourceDocument,
     documents_dir: Path,
     service_catalogue: ServiceCatalogue,
+    scoring_rubric: ScoringRubric,
 ) -> list[Signal]:
     """Extract cautious, evidence-linked candidate signals from the declared report scope."""
     source_path = documents_dir / document.filename
@@ -39,26 +37,29 @@ def extract_document(
         document.scope.first_physical_page, document.scope.last_physical_page + 1
     ):
         page_text = reader.pages[physical_page - 1].extract_text() or ""
-        for excerpt in _matching_excerpts(page_text):
-            matches.append(_to_signal(document, physical_page, excerpt, service_catalogue))
+        for excerpt in _matching_excerpts(page_text, scoring_rubric):
+            matches.append(
+                _to_signal(document, physical_page, excerpt, service_catalogue, scoring_rubric)
+            )
 
     return _deduplicate_and_rank(matches)
 
 
-def _matching_excerpts(page_text: str) -> Iterable[str]:
+def _matching_excerpts(page_text: str, scoring_rubric: ScoringRubric) -> Iterable[str]:
     cleaned = re.sub(r"\s+", " ", page_text).strip()
     for sentence in _SENTENCE_BREAK.split(cleaned):
         sentence = sentence.strip()
-        if len(sentence) >= 35 and _KEYWORDS.search(sentence) and _is_substantive(sentence):
-            yield sentence[:900]
+        excerpt = sentence[:900]
+        if len(excerpt) >= 35 and _is_substantive(excerpt, scoring_rubric):
+            yield excerpt
 
 
-def _is_substantive(sentence: str) -> bool:
+def _is_substantive(sentence: str, scoring_rubric: ScoringRubric) -> bool:
     """Avoid treating generic governance mentions as commercial workforce evidence."""
-    lowered = sentence.casefold()
-    if "agency" in lowered or "bank" in lowered:
-        return bool(_TEMPORARY_STAFFING_CONTEXT.search(sentence))
-    return bool(_RECRUITMENT_CONTEXT.search(sentence))
+    rule = _matching_rule(sentence, scoring_rubric)
+    return rule is not None and any(
+        match.casefold() in sentence.casefold() for match in rule.substantive_matches
+    )
 
 
 def _to_signal(
@@ -66,41 +67,18 @@ def _to_signal(
     page: int,
     excerpt: str,
     service_catalogue: ServiceCatalogue,
+    scoring_rubric: ScoringRubric,
 ) -> Signal:
-    lowered = excerpt.lower()
-    if "agency" in lowered or "bank" in lowered:
-        category = "temporary-staff expenditure"
-        score = 92.5 if _TEMPORARY_STAFFING_CONTEXT.search(excerpt) else 77.5
-        reasons = [
-            "Clear workforce-service fit",
-            "Explicit spend or staffing evidence",
-            "Recent pack",
-        ]
-        action = "Validate the current temporary staffing position and explore bank optimisation."
-    elif "recruit" in lowered or "headhunt" in lowered:
-        category = "recruitment activity"
-        score = 82.5
-        reasons = [
-            "Clear recruitment-service fit",
-            "Specific workforce activity",
-            "Evidence requires review",
-        ]
-        action = "Confirm whether the recruitment activity remains open before proposing support."
-    else:
-        category = "vacancy pressure"
-        score = 67.5
-        reasons = [
-            "Specific workforce reference",
-            "Period may be historical",
-            "Human validation required",
-        ]
-        action = "Ask whether the documented gap remains unresolved before suggesting support."
+    rule = _matching_rule(excerpt, scoring_rubric)
+    if rule is None:
+        raise ValueError("No configured scoring rule matches the extracted evidence.")
+    band = _score_band(excerpt, rule)
 
     digest = sha256(f"{document.id}:{page}:{excerpt}".encode()).hexdigest()[:16]
     return Signal(
         id=f"sig-{digest}",
         organisation=document.organisation,
-        category=category,
+        category=rule.category,
         service=_service_name(excerpt, service_catalogue),
         source_fact=excerpt,
         interpretation=(
@@ -108,9 +86,9 @@ def _to_signal(
             "decision."
         ),
         reporting_period=document.scope.reporting_period,
-        score=score,
-        score_reasons=reasons,
-        proposed_next_action=action,
+        score=band.score,
+        score_reasons=band.score_reasons,
+        proposed_next_action=rule.proposed_next_action,
         evidence=Evidence(
             document_id=document.id,
             filename=document.filename,
@@ -121,6 +99,31 @@ def _to_signal(
         caveats=[
             "Candidate generated by deterministic local extraction; reviewer approval is required."
         ],
+    )
+
+
+def _matching_rule(excerpt: str, scoring_rubric: ScoringRubric) -> ScoringRule | None:
+    lowered = excerpt.casefold()
+    return next(
+        (
+            rule
+            for rule in scoring_rubric.rules
+            if any(trigger.casefold() in lowered for trigger in rule.triggers)
+        ),
+        None,
+    )
+
+
+def _score_band(excerpt: str, rule: ScoringRule) -> ScoreBand:
+    lowered = excerpt.casefold()
+    return next(
+        (
+            band
+            for band in rule.score_bands
+            if not band.evidence_matches
+            or any(match.casefold() in lowered for match in band.evidence_matches)
+        ),
+        rule.score_bands[-1],
     )
 
 

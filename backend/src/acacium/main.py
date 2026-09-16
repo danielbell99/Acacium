@@ -8,7 +8,12 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 
-from acacium.catalogue import find_document, load_manifest, load_service_catalogue
+from acacium.catalogue import (
+    find_document,
+    load_manifest,
+    load_scoring_rubric,
+    load_service_catalogue,
+)
 from acacium.integrity import SourceIntegrityError, verify_sha256
 from acacium.pipeline.extract import extract_document
 from acacium.review_store import ReviewStore
@@ -26,8 +31,9 @@ from acacium.settings import get_settings
 settings = get_settings()
 manifest = load_manifest(settings.manifest_path)
 service_catalogue = load_service_catalogue(settings.service_catalogue_path)
+scoring_rubric = load_scoring_rubric(settings.scoring_rubric_path)
 store = RunStore(ReviewStore(settings.review_database_path))
-RUBRIC_VERSION = "2026-09-16"
+RUBRIC_VERSION = scoring_rubric.version
 
 app = FastAPI(title="Acacium Board Paper Intelligence", version="0.1.0")
 app.add_middleware(
@@ -66,7 +72,7 @@ def config() -> ConfigResponse:
         demo_mode=settings.demo_mode,
         rubric_version=RUBRIC_VERSION,
         source_manifest_version=manifest.manifest_version,
-        score_formula="(35*fit + 25*need + 25*timing + 15*specificity) / 2",
+        score_formula=scoring_rubric.formula,
     )
 
 
@@ -199,6 +205,7 @@ def _run_extraction(run_id: str, document_ids: list[str]) -> None:
                 source,
                 Path(settings.documents_dir),
                 service_catalogue,
+                scoring_rubric,
             )
             extracted.extend(document_signals)
             for page_index in range(source.scope.page_count):

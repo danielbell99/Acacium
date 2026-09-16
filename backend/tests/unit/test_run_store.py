@@ -121,6 +121,7 @@ def test_in_progress_run_is_marked_failed_after_a_restart(tmp_path: Path) -> Non
         recovered = second_store.get(run.id)
         assert recovered is not None
         assert recovered.status is RunStatus.FAILED
+        assert not recovered.snapshot_available
         assert recovered.error == "Local process restarted before extraction completed."
     finally:
         second_store.close()

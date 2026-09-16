@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     def service_catalogue_path(self) -> Path:
         return Path("config/service-catalogue.json")
 
+    @property
+    def scoring_rubric_path(self) -> Path:
+        return Path("config/scoring-rubric.json")
+
 
 @lru_cache
 def get_settings() -> Settings:

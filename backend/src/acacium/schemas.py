@@ -85,6 +85,28 @@ class ServiceCatalogue(BaseModel):
     services: list[ServiceDefinition] = Field(min_length=1)
 
 
+class ScoreBand(BaseModel):
+    id: str
+    score: float = Field(ge=0, le=100)
+    score_reasons: list[str] = Field(min_length=1)
+    evidence_matches: list[str] = Field(default_factory=list)
+
+
+class ScoringRule(BaseModel):
+    id: str
+    category: str
+    triggers: list[str] = Field(min_length=1)
+    substantive_matches: list[str] = Field(min_length=1)
+    score_bands: list[ScoreBand] = Field(min_length=1)
+    proposed_next_action: str = Field(min_length=1)
+
+
+class ScoringRubric(BaseModel):
+    version: str
+    formula: str
+    rules: list[ScoringRule] = Field(min_length=1)
+
+
 class RunRequest(BaseModel):
     document_ids: list[str] = Field(min_length=1)
     as_of_date: str = Field(default_factory=lambda: datetime.now(UTC).date().isoformat())
