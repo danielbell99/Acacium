@@ -1,12 +1,15 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap format lint typecheck test test-integration audit dead-code qa dev down-all
+.PHONY: help bootstrap fetch-documents format lint typecheck test test-integration audit dead-code qa dev down-all
 
 help:
 	@just --list
 
 bootstrap:
 	@just bootstrap
+
+fetch-documents:
+	@just fetch-documents
 
 format:
 	@uv run ruff format backend

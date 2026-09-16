@@ -13,3 +13,4 @@ runtime/
 coverage/
 htmlcov/
 .coverage
+.playwright-cli/

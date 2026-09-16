@@ -9,6 +9,9 @@ bootstrap:
     cd frontend && npm install
     uv run pre-commit install --hook-type pre-commit --hook-type pre-push
 
+fetch-documents:
+    uv run python scripts/fetch_documents.py
+
 dev:
     mkdir -p runtime
     just down-all
