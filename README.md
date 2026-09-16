@@ -93,7 +93,7 @@ just bootstrap
 cd frontend && npm run build
 ```
 
-`make qa` runs Ruff, mypy, ESLint, TypeScript, 24 Python unit tests, 3 frontend tests, 8 FastAPI
+`make qa` runs Ruff, mypy, ESLint, TypeScript, 25 Python unit tests, 3 frontend tests, 8 FastAPI
 integration tests, `pip-audit`, and Vulture. The saved test corpus validates source integrity,
 extraction rules, scoring bands, review persistence, run recovery, API contracts and the frontend
 API client.
