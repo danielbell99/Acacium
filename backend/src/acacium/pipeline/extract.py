@@ -7,6 +7,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+from acacium.integrity import verify_sha256
 from acacium.schemas import Evidence, Signal, SourceDocument
 
 _KEYWORDS = re.compile(
@@ -26,6 +27,7 @@ _RECRUITMENT_CONTEXT = re.compile(
 def extract_document(document: SourceDocument, documents_dir: Path) -> list[Signal]:
     """Extract cautious, evidence-linked candidate signals from the declared report scope."""
     source_path = documents_dir / document.filename
+    verify_sha256(source_path, document.sha256)
     reader = PdfReader(str(source_path))
     matches: list[Signal] = []
 

@@ -25,6 +25,9 @@ the demonstration. Their filenames, hashes, source URLs and 105 declared physica
 are tracked in `config/source-manifest.json`. The editable Azure design diagram is versioned at
 `docs/architecture/acacium-azure-solution-architecture.drawio`.
 
+Before extraction, the local PDF is checked against its tracked SHA-256 digest. A changed or
+substituted file is rejected before any evidence or ranked signal is generated.
+
 Original PDFs, derived runtime data, credentials and model artefacts are intentionally excluded from
 Git. The front end only consumes the FastAPI API; it never reads the source PDFs directly.
 
