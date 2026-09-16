@@ -28,6 +28,10 @@ are tracked in `config/source-manifest.json`. The editable Azure design diagram 
 Before extraction, the local PDF is checked against its tracked SHA-256 digest. A changed or
 substituted file is rejected before any evidence or ranked signal is generated.
 
+Service-fit labels are resolved from the versioned `config/service-catalogue.json` keyword and
+priority rules. This keeps the commercial mapping reviewable and changeable without changing the
+extraction pipeline.
+
 Original PDFs, derived runtime data, credentials and model artefacts are intentionally excluded from
 Git. The front end only consumes the FastAPI API; it never reads the source PDFs directly.
 

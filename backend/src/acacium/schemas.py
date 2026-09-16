@@ -73,6 +73,18 @@ class DocumentList(BaseModel):
     documents: list[SourceDocument]
 
 
+class ServiceDefinition(BaseModel):
+    id: str
+    name: str
+    matches: list[str] = Field(min_length=1)
+    priority: int = 0
+
+
+class ServiceCatalogue(BaseModel):
+    version: str
+    services: list[ServiceDefinition] = Field(min_length=1)
+
+
 class RunRequest(BaseModel):
     document_ids: list[str] = Field(min_length=1)
     as_of_date: str = "2026-09-16"

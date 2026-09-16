@@ -1,5 +1,5 @@
-from acacium.pipeline.extract import _deduplicate_and_rank, _is_substantive
-from acacium.schemas import Evidence, Signal
+from acacium.pipeline.extract import _deduplicate_and_rank, _is_substantive, _service_name
+from acacium.schemas import Evidence, ServiceCatalogue, ServiceDefinition, Signal
 
 
 def test_rejects_a_generic_agency_reference() -> None:
@@ -23,6 +23,54 @@ def test_keeps_the_strongest_candidate_for_each_source_page() -> None:
     shortlisted = _deduplicate_and_rank([weaker, stronger])
 
     assert [signal.source_fact for signal in shortlisted] == [stronger.source_fact]
+
+
+def test_service_selection_prefers_the_more_specific_catalogue_match() -> None:
+    services = ServiceCatalogue(
+        version="test",
+        services=[
+            ServiceDefinition(
+                id="permanent-recruitment",
+                name="Permanent recruitment",
+                matches=["recruitment"],
+                priority=40,
+            ),
+            ServiceDefinition(
+                id="staff-bank-rpo",
+                name="Managed staff bank / RPO",
+                matches=["agency"],
+                priority=80,
+            ),
+        ],
+    )
+
+    assert (
+        _service_name("Agency spend increased despite recruitment activity.", services)
+        == "Managed staff bank / RPO"
+    )
+
+
+def test_service_selection_covers_plural_vacancies_and_locums() -> None:
+    services = ServiceCatalogue(
+        version="test",
+        services=[
+            ServiceDefinition(
+                id="permanent-recruitment",
+                name="Permanent recruitment",
+                matches=["vacanc"],
+                priority=40,
+            ),
+            ServiceDefinition(
+                id="temporary-staffing",
+                name="Temporary staffing",
+                matches=["locum"],
+                priority=60,
+            ),
+        ],
+    )
+
+    assert _service_name("Nursing vacancies are increasing.", services) == "Permanent recruitment"
+    assert _service_name("The rota uses locums.", services) == "Temporary staffing"
 
 
 def _candidate(source_fact: str) -> Signal:

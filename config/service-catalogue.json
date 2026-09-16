@@ -4,17 +4,20 @@
     {
       "id": "permanent-recruitment",
       "name": "Permanent recruitment",
-      "matches": ["vacancy", "recruitment", "consultant", "registrar"]
+      "matches": ["vacanc", "recruitment", "consultant", "registrar"],
+      "priority": 40
     },
     {
       "id": "staff-bank-rpo",
       "name": "Managed staff bank / RPO",
-      "matches": ["bank", "agency", "temporary staffing", "workforce"]
+      "matches": ["bank", "agency", "temporary staffing", "workforce"],
+      "priority": 80
     },
     {
       "id": "temporary-staffing",
       "name": "Temporary staffing",
-      "matches": ["agency", "rota", "staffing pressure"]
+      "matches": ["agency", "rota", "staffing pressure", "locum"],
+      "priority": 60
     }
   ]
 }

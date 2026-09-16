@@ -1,4 +1,4 @@
-from acacium.catalogue import load_manifest
+from acacium.catalogue import load_manifest, load_service_catalogue
 from acacium.settings import get_settings
 
 
@@ -13,3 +13,14 @@ def test_manifest_has_three_distinct_scoped_reports() -> None:
         "Airedale NHS Foundation Trust",
         "The Shrewsbury and Telford Hospital NHS Trust",
     }
+
+
+def test_service_catalogue_has_a_specific_temporary_staffing_service() -> None:
+    services = load_service_catalogue(get_settings().service_catalogue_path)
+
+    assert services.version == "2026-09-16"
+    assert [service.id for service in services.services] == [
+        "permanent-recruitment",
+        "staff-bank-rpo",
+        "temporary-staffing",
+    ]
