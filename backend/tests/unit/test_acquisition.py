@@ -5,6 +5,7 @@ from io import BytesIO
 from pathlib import Path
 from urllib.request import Request
 
+import acacium.acquisition as acquisition
 import pytest
 from acacium.acquisition import fetch_documents
 from acacium.integrity import SourceIntegrityError
@@ -17,6 +18,22 @@ class _Response(BytesIO):
 
     def __exit__(self, *args: object) -> None:
         self.close()
+
+
+def test_default_downloader_passes_timeout_by_keyword(monkeypatch: pytest.MonkeyPatch) -> None:
+    received: dict[str, object] = {}
+
+    def opener(request: Request, *, timeout: float) -> _Response:
+        received["request"] = request
+        received["timeout"] = timeout
+        return _Response(b"")
+
+    monkeypatch.setattr(acquisition, "urlopen", opener)
+
+    response = acquisition._download(Request("https://example.test/example.pdf"), 17.0)
+
+    assert response.read() == b""
+    assert received["timeout"] == 17.0
 
 
 def _manifest(payload: bytes) -> DocumentList:

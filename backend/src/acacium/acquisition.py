@@ -19,7 +19,13 @@ class DownloadResponse(Protocol):
 
 
 Downloader = Callable[[Request, float], DownloadResponse]
-DEFAULT_DOWNLOADER = cast(Downloader, urlopen)
+
+
+def _download(request: Request, timeout: float) -> DownloadResponse:
+    return cast(DownloadResponse, urlopen(request, timeout=timeout))
+
+
+DEFAULT_DOWNLOADER: Downloader = _download
 
 
 @dataclass(frozen=True)
