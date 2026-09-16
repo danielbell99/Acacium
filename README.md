@@ -22,8 +22,8 @@ loopback proxy before it can become the public development address.
 
 The ignored `data/documents/` directory contains the three preserved public board packs used for
 the demonstration. Their filenames, hashes, source URLs and 105 declared physical pages in scope
-are tracked in `config/source-manifest.json`. The Azure design diagram is retained locally at
-`data/design/acacium-azure-solution-architecture.drawio`.
+are tracked in `config/source-manifest.json`. The editable Azure design diagram is versioned at
+`docs/architecture/acacium-azure-solution-architecture.drawio`.
 
 Original PDFs, derived runtime data, credentials and model artefacts are intentionally excluded from
 Git. The front end only consumes the FastAPI API; it never reads the source PDFs directly.
