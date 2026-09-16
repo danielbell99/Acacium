@@ -117,8 +117,17 @@ def _to_signal(document: SourceDocument, page: int, excerpt: str) -> Signal:
 
 
 def _deduplicate_and_rank(signals: list[Signal]) -> list[Signal]:
-    unique: dict[tuple[str, str, str], Signal] = {}
+    unique: dict[tuple[str, str, int], Signal] = {}
     for signal in signals:
-        key = (signal.organisation, signal.category, signal.source_fact.casefold())
-        unique.setdefault(key, signal)
+        key = (signal.organisation, signal.category, signal.evidence.physical_page)
+        existing = unique.get(key)
+        if existing is None or _evidence_quality(signal) > _evidence_quality(existing):
+            unique[key] = signal
     return sorted(unique.values(), key=lambda signal: (-signal.score, signal.id))[:20]
+
+
+def _evidence_quality(signal: Signal) -> tuple[int, int]:
+    """Prefer a page's most measurable and decision-relevant excerpt."""
+    excerpt = signal.source_fact.casefold()
+    indicators = ("£", "wte", "vacan", "above cap", "expenditure", "exit plan")
+    return sum(indicator in excerpt for indicator in indicators), len(signal.source_fact)
