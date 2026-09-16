@@ -2,7 +2,7 @@ from pathlib import Path
 
 from acacium.review_store import ReviewStore
 from acacium.run_store import RunStore
-from acacium.schemas import Evidence, ReviewRequest, ReviewStatus, Signal
+from acacium.schemas import Evidence, ReviewRequest, ReviewStatus, RunStatus, Signal
 
 
 def _signal(identifier: str, score: float) -> Signal:
@@ -65,6 +65,41 @@ def test_review_decision_is_reapplied_to_a_fresh_extraction(tmp_path: Path) -> N
         assert len(second_store.approved_signals()) == 1
     finally:
         first_store.close()
+        second_store.close()
+
+
+def test_completed_run_and_shortlist_survive_a_restart(tmp_path: Path) -> None:
+    database_path = tmp_path / "reviews.sqlite3"
+    first_store = RunStore(ReviewStore(database_path))
+    signal = _signal("persisted-signal", 91.0)
+    _complete(first_store, signal)
+    run = first_store.list_runs()[0]
+    first_store.close()
+
+    second_store = RunStore(ReviewStore(database_path))
+    try:
+        recovered = second_store.get(run.id)
+        assert recovered is not None
+        assert recovered.status is RunStatus.COMPLETED
+        assert [stored.id for stored in second_store.signals()] == [signal.id]
+    finally:
+        second_store.close()
+
+
+def test_in_progress_run_is_marked_failed_after_a_restart(tmp_path: Path) -> None:
+    database_path = tmp_path / "reviews.sqlite3"
+    first_store = RunStore(ReviewStore(database_path))
+    run = first_store.create(["example"])
+    first_store.begin(run.id, selected_pages=1)
+    first_store.close()
+
+    second_store = RunStore(ReviewStore(database_path))
+    try:
+        recovered = second_store.get(run.id)
+        assert recovered is not None
+        assert recovered.status is RunStatus.FAILED
+        assert recovered.error == "Local process restarted before extraction completed."
+    finally:
         second_store.close()
 
 

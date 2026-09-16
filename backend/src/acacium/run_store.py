@@ -9,13 +9,24 @@ from acacium.schemas import ReviewRequest, ReviewStatus, Run, RunProgress, RunSt
 
 
 class RunStore:
-    """Small, explicit in-process store. Durable persistence is the next build slice."""
+    """Coordinates active extraction with a durable local evidence snapshot."""
 
     def __init__(self, review_store: ReviewStore) -> None:
-        self._runs: dict[str, Run] = {}
-        self._signals: dict[str, Signal] = {}
         self._lock = Lock()
         self._review_store = review_store
+        recovered_runs = review_store.load_runs()
+        self._runs: dict[str, Run] = {run.id: run for run in recovered_runs}
+        completed_runs = [run for run in recovered_runs if run.status is RunStatus.COMPLETED]
+        latest = max(
+            completed_runs,
+            key=lambda run: run.completed_at or run.created_at,
+            default=None,
+        )
+        self._signals = (
+            {signal.id: signal for signal in review_store.load_signals(latest.id)}
+            if latest is not None
+            else {}
+        )
 
     def create(self, document_ids: list[str]) -> Run:
         run = Run(
@@ -27,6 +38,7 @@ class RunStore:
         )
         with self._lock:
             self._runs[run.id] = run
+            self._review_store.save_run(run)
         return run
 
     def get(self, run_id: str) -> Run | None:
@@ -42,21 +54,25 @@ class RunStore:
             run = self._runs[run_id]
             run.status = RunStatus.RUNNING
             run.progress.selected_pages = selected_pages
+            self._review_store.save_run(run)
 
     def record_page(self, run_id: str, candidates: list[Signal]) -> None:
         with self._lock:
             run = self._runs[run_id]
             run.progress.processed_pages += 1
             run.progress.candidates_found += len(candidates)
+            self._review_store.save_run(run)
 
     def complete(self, run_id: str, signals: list[Signal]) -> None:
         with self._lock:
             run = self._runs[run_id]
             shortlisted = sorted(signals, key=lambda signal: (-signal.score, signal.id))[:20]
             reviewed = self._review_store.apply(shortlisted)
-            self._signals.update({signal.id: signal for signal in reviewed})
+            self._signals = {signal.id: signal for signal in reviewed}
+            self._review_store.replace_signals(run_id, reviewed)
             run.status = RunStatus.COMPLETED
             run.completed_at = datetime.now(UTC)
+            self._review_store.save_run(run)
 
     def fail(self, run_id: str, message: str) -> None:
         with self._lock:
@@ -64,6 +80,7 @@ class RunStore:
             run.status = RunStatus.FAILED
             run.error = message
             run.completed_at = datetime.now(UTC)
+            self._review_store.save_run(run)
 
     def signals(self) -> list[Signal]:
         with self._lock:
@@ -82,6 +99,7 @@ class RunStore:
             signal.review_status = request.decision
             signal.review_reason = request.reason
             self._review_store.save(signal_id, request)
+            self._review_store.update_signal(signal)
             return signal
 
     def close(self) -> None:

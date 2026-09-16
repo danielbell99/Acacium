@@ -28,6 +28,10 @@ are tracked in `config/source-manifest.json`. The editable Azure design diagram 
 Original PDFs, derived runtime data, credentials and model artefacts are intentionally excluded from
 Git. The front end only consumes the FastAPI API; it never reads the source PDFs directly.
 
+The local SQLite runtime store retains the latest completed shortlist, its run history and reviewer
+decisions across a service restart. An in-progress run interrupted by a restart is marked failed;
+the operator can re-run the unchanged source corpus explicitly.
+
 ## Quality checks
 
 ```sh
