@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from acacium.catalogue import find_document, load_manifest
 from acacium.pipeline.extract import extract_document
+from acacium.review_store import ReviewStore
 from acacium.run_store import RunStore
 from acacium.schemas import (
     ConfigResponse,
@@ -20,7 +21,7 @@ from acacium.settings import get_settings
 
 settings = get_settings()
 manifest = load_manifest(settings.manifest_path)
-store = RunStore()
+store = RunStore(ReviewStore(settings.review_database_path))
 
 app = FastAPI(title="Acacium Board Paper Intelligence", version="0.1.0")
 app.add_middleware(

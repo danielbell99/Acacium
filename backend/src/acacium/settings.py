@@ -21,6 +21,10 @@ class Settings(BaseSettings):
         return self.data_dir / "documents"
 
     @property
+    def review_database_path(self) -> Path:
+        return self.data_dir / "app.sqlite3"
+
+    @property
     def manifest_path(self) -> Path:
         return Path("config/source-manifest.json")
 

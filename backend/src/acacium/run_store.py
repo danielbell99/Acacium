@@ -4,16 +4,18 @@ from datetime import UTC, datetime
 from threading import Lock
 from uuid import uuid4
 
+from acacium.review_store import ReviewStore
 from acacium.schemas import ReviewRequest, Run, RunProgress, RunStatus, Signal
 
 
 class RunStore:
     """Small, explicit in-process store. Durable persistence is the next build slice."""
 
-    def __init__(self) -> None:
+    def __init__(self, review_store: ReviewStore) -> None:
         self._runs: dict[str, Run] = {}
         self._signals: dict[str, Signal] = {}
         self._lock = Lock()
+        self._review_store = review_store
 
     def create(self, document_ids: list[str]) -> Run:
         run = Run(
@@ -51,7 +53,8 @@ class RunStore:
         with self._lock:
             run = self._runs[run_id]
             shortlisted = sorted(signals, key=lambda signal: (-signal.score, signal.id))[:20]
-            self._signals.update({signal.id: signal for signal in shortlisted})
+            reviewed = self._review_store.apply(shortlisted)
+            self._signals.update({signal.id: signal for signal in reviewed})
             run.status = RunStatus.COMPLETED
             run.completed_at = datetime.now(UTC)
 
@@ -73,4 +76,8 @@ class RunStore:
                 return None
             signal.review_status = request.decision
             signal.review_reason = request.reason
+            self._review_store.save(signal_id, request)
             return signal
+
+    def close(self) -> None:
+        self._review_store.close()
