@@ -187,6 +187,48 @@ button {
   border-left: 1px solid #d6dfdb;
   padding-left: 24px;
 }
+.source-selector {
+  border: 1px solid #d6dfdb;
+  margin: 0 0 22px;
+  padding: 12px 14px 14px;
+}
+.source-selector legend {
+  color: #40504a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 5px;
+}
+.source-options {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.source-option {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+.source-option input {
+  accent-color: #0a5b50;
+  flex: 0 0 auto;
+  margin: 3px 0 0;
+}
+.source-option span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.source-option strong {
+  color: #1b2e28;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.source-option small {
+  color: #5c6c67;
+  font-size: 12px;
+  line-height: 1.35;
+}
 .run-history {
   border: 1px solid #d6dfdb;
   margin: 0 0 22px;
@@ -396,6 +438,9 @@ tbody tr.selected {
   .coverage-strip span + span {
     border-left: 0;
     padding-left: 0;
+  }
+  .source-options {
+    grid-template-columns: 1fr;
   }
   .run-history-heading {
     align-items: flex-start;

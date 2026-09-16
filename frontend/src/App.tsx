@@ -137,6 +137,7 @@ function EvidencePanel({
 export default function App() {
   const client = useQueryClient();
   const [selectedId, setSelectedId] = useState<string>();
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>();
   const [reviewReason, setReviewReason] = useState("");
   const documents = useQuery({
     queryKey: ["documents"],
@@ -180,6 +181,30 @@ export default function App() {
     (job) => job.status === "queued" || job.status === "running",
   );
   const recentRuns = useMemo(() => (jobs.data ?? []).slice(0, 3), [jobs.data]);
+  const selectedDocuments = useMemo(() => {
+    const available = documents.data?.documents ?? [];
+    if (selectedDocumentIds === undefined) {
+      return available;
+    }
+    return available.filter((document) =>
+      selectedDocumentIds.includes(document.id),
+    );
+  }, [documents.data?.documents, selectedDocumentIds]);
+  const selectedPageCount = selectedDocuments.reduce(
+    (count, document) => count + document.scope.page_count,
+    0,
+  );
+
+  function toggleDocument(documentId: string): void {
+    const defaultIds =
+      documents.data?.documents.map((document) => document.id) ?? [];
+    setSelectedDocumentIds((current) => {
+      const selected = current ?? defaultIds;
+      return selected.includes(documentId)
+        ? selected.filter((id) => id !== documentId)
+        : [...selected, documentId];
+    });
+  }
 
   return (
     <main>
@@ -202,11 +227,14 @@ export default function App() {
           <button
             className="run-button"
             onClick={() =>
-              run.mutate(
-                documents.data?.documents.map((document) => document.id) ?? [],
-              )
+              run.mutate(selectedDocuments.map((document) => document.id))
             }
-            disabled={!documents.data || Boolean(activeRun) || run.isPending}
+            disabled={
+              !documents.data ||
+              selectedDocuments.length === 0 ||
+              Boolean(activeRun) ||
+              run.isPending
+            }
           >
             {activeRun || run.isPending ? (
               <RefreshCw size={17} className="spin" aria-hidden="true" />
@@ -217,17 +245,39 @@ export default function App() {
           </button>
         </div>
         <div className="coverage-strip">
-          <span>{documents.data?.documents.length ?? 0} source packs</span>
-          <span>
-            {documents.data?.selected_report_page_count ?? 0} declared pages in
-            scope
-          </span>
+          <span>{selectedDocuments.length} source packs selected</span>
+          <span>{selectedPageCount} declared pages in scope</span>
           <span>
             {activeRun
               ? `${activeRun.progress.processed_pages}/${activeRun.progress.selected_pages} pages processed`
               : "No active run"}
           </span>
         </div>
+        {documents.data ? (
+          <fieldset className="source-selector">
+            <legend>Source packs</legend>
+            <div className="source-options">
+              {documents.data.documents.map((document) => (
+                <label key={document.id} className="source-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedDocuments.some(
+                      (selected) => selected.id === document.id,
+                    )}
+                    onChange={() => toggleDocument(document.id)}
+                  />
+                  <span>
+                    <strong>{document.organisation}</strong>
+                    <small>
+                      {document.scope.page_count} pages ·{" "}
+                      {document.scope.layout}
+                    </small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
         {recentRuns.length > 0 ? (
           <section
             className="run-history"
