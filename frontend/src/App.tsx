@@ -21,10 +21,14 @@ function scoreClass(score: number): string {
 function EvidencePanel({
   signal,
   onReview,
+  reviewReason,
+  onReviewReasonChange,
   reviewing,
 }: {
   signal: Signal | undefined;
-  onReview: (decision: "approved" | "rejected") => void;
+  onReview: (decision: "approved" | "rejected", reason: string) => void;
+  reviewReason: string;
+  onReviewReasonChange: (reason: string) => void;
   reviewing: boolean;
 }) {
   if (!signal) {
@@ -83,11 +87,24 @@ function EvidencePanel({
         <p className={`review-status status-${signal.review_status}`}>
           {signal.review_status}
         </p>
+        {signal.review_reason ? (
+          <p className="saved-review-reason">{signal.review_reason}</p>
+        ) : null}
+        <label className="review-reason" htmlFor="review-reason">
+          Reviewer rationale
+          <textarea
+            id="review-reason"
+            value={reviewReason}
+            onChange={(event) => onReviewReasonChange(event.target.value)}
+            maxLength={500}
+            placeholder="State why the evidence should be approved or rejected."
+          />
+        </label>
         <div className="review-actions">
           <button
             className="approve"
-            disabled={reviewing}
-            onClick={() => onReview("approved")}
+            disabled={reviewing || reviewReason.trim().length < 3}
+            onClick={() => onReview("approved", reviewReason.trim())}
           >
             <ThumbsUp size={15} aria-hidden="true" /> Approve
           </button>
@@ -96,8 +113,8 @@ function EvidencePanel({
           </a>
           <button
             className="reject"
-            disabled={reviewing}
-            onClick={() => onReview("rejected")}
+            disabled={reviewing || reviewReason.trim().length < 3}
+            onClick={() => onReview("rejected", reviewReason.trim())}
           >
             <ThumbsDown size={15} aria-hidden="true" /> Reject
           </button>
@@ -113,6 +130,7 @@ function EvidencePanel({
 export default function App() {
   const client = useQueryClient();
   const [selectedId, setSelectedId] = useState<string>();
+  const [reviewReason, setReviewReason] = useState("");
   const documents = useQuery({
     queryKey: ["documents"],
     queryFn: api.documents,
@@ -135,10 +153,12 @@ export default function App() {
     mutationFn: ({
       signalId,
       decision,
+      reason,
     }: {
       signalId: string;
       decision: "approved" | "rejected";
-    }) => api.reviewSignal(signalId, decision),
+      reason: string;
+    }) => api.reviewSignal(signalId, decision, reason),
     onSuccess: () => void client.invalidateQueries({ queryKey: ["signals"] }),
   });
 
@@ -223,7 +243,10 @@ export default function App() {
                   <tr
                     key={signal.id}
                     className={selected?.id === signal.id ? "selected" : ""}
-                    onClick={() => setSelectedId(signal.id)}
+                    onClick={() => {
+                      setSelectedId(signal.id);
+                      setReviewReason("");
+                    }}
                   >
                     <td>{index + 1}</td>
                     <td>{signal.organisation}</td>
@@ -249,8 +272,11 @@ export default function App() {
           <EvidencePanel
             signal={selected}
             reviewing={review.isPending}
-            onReview={(decision) =>
-              selected && review.mutate({ signalId: selected.id, decision })
+            reviewReason={reviewReason}
+            onReviewReasonChange={setReviewReason}
+            onReview={(decision, reason) =>
+              selected &&
+              review.mutate({ signalId: selected.id, decision, reason })
             }
           />
         </div>

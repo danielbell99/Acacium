@@ -22,6 +22,39 @@
   min-height: 34px;
   padding: 0 10px;
 }
+.review-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.review-reason {
+  color: #40504a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  margin: 12px 0;
+}
+.review-reason textarea {
+  border: 1px solid #b9c8c1;
+  border-radius: 4px;
+  color: #152623;
+  font: inherit;
+  font-size: 13px;
+  min-height: 74px;
+  padding: 8px;
+  resize: vertical;
+}
+.review-reason textarea:focus {
+  border-color: #0a5b50;
+  outline: 2px solid #b9d9d0;
+  outline-offset: 1px;
+}
+.saved-review-reason {
+  background: #eef3f0;
+  border-left: 3px solid #0a5b50;
+  margin: 8px 0 0;
+  padding: 8px 10px;
+}
 
 .approve {
   background: #e4f4e9;

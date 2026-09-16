@@ -82,12 +82,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ document_ids: documentIds }),
     }),
-  reviewSignal: (signalId: string, decision: "approved" | "rejected") =>
+  reviewSignal: (
+    signalId: string,
+    decision: "approved" | "rejected",
+    reason: string,
+  ) =>
     request<Signal>(`/api/signals/${signalId}/review`, {
       method: "POST",
       body: JSON.stringify({
         decision,
-        reason: "Evidence reviewed in the local prototype.",
+        reason,
       }),
     }),
 };
