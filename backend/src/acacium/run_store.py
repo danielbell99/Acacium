@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from threading import Lock
 from uuid import uuid4
 
-from acacium.schemas import Run, RunProgress, RunStatus, Signal
+from acacium.schemas import ReviewRequest, Run, RunProgress, RunStatus, Signal
 
 
 class RunStore:
@@ -65,3 +65,12 @@ class RunStore:
     def signals(self) -> list[Signal]:
         with self._lock:
             return sorted(self._signals.values(), key=lambda signal: (-signal.score, signal.id))
+
+    def review(self, signal_id: str, request: ReviewRequest) -> Signal | None:
+        with self._lock:
+            signal = self._signals.get(signal_id)
+            if signal is None:
+                return None
+            signal.review_status = request.decision
+            signal.review_reason = request.reason
+            return signal

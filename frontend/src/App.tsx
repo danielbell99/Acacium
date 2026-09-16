@@ -6,6 +6,8 @@ import {
   Play,
   RefreshCw,
   ShieldCheck,
+  ThumbsDown,
+  ThumbsUp,
 } from "lucide-react";
 import { api, type Signal } from "./api";
 
@@ -15,7 +17,15 @@ function scoreClass(score: number): string {
   return "score score-low";
 }
 
-function EvidencePanel({ signal }: { signal: Signal | undefined }) {
+function EvidencePanel({
+  signal,
+  onReview,
+  reviewing,
+}: {
+  signal: Signal | undefined;
+  onReview: (decision: "approved" | "rejected") => void;
+  reviewing: boolean;
+}) {
   if (!signal) {
     return (
       <aside className="detail-empty">
@@ -59,6 +69,28 @@ function EvidencePanel({ signal }: { signal: Signal | undefined }) {
         <h3>Suggested next action</h3>
         <p>{signal.proposed_next_action}</p>
       </section>
+      <section>
+        <h3>Review decision</h3>
+        <p className={`review-status status-${signal.review_status}`}>
+          {signal.review_status}
+        </p>
+        <div className="review-actions">
+          <button
+            className="approve"
+            disabled={reviewing}
+            onClick={() => onReview("approved")}
+          >
+            <ThumbsUp size={15} aria-hidden="true" /> Approve
+          </button>
+          <button
+            className="reject"
+            disabled={reviewing}
+            onClick={() => onReview("rejected")}
+          >
+            <ThumbsDown size={15} aria-hidden="true" /> Reject
+          </button>
+        </div>
+      </section>
       <p className="caveat">
         <AlertCircle size={15} aria-hidden="true" /> {signal.caveats[0]}
       </p>
@@ -86,6 +118,16 @@ export default function App() {
   const run = useMutation({
     mutationFn: api.startRun,
     onSuccess: () => void client.invalidateQueries({ queryKey: ["jobs"] }),
+  });
+  const review = useMutation({
+    mutationFn: ({
+      signalId,
+      decision,
+    }: {
+      signalId: string;
+      decision: "approved" | "rejected";
+    }) => api.reviewSignal(signalId, decision),
+    onSuccess: () => void client.invalidateQueries({ queryKey: ["signals"] }),
   });
 
   const shortlist = useMemo(
@@ -192,7 +234,13 @@ export default function App() {
               </tbody>
             </table>
           </section>
-          <EvidencePanel signal={selected} />
+          <EvidencePanel
+            signal={selected}
+            reviewing={review.isPending}
+            onReview={(decision) =>
+              selected && review.mutate({ signalId: selected.id, decision })
+            }
+          />
         </div>
       </section>
     </main>

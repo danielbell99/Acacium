@@ -37,7 +37,8 @@ export type Signal = {
   score_reasons: string[];
   proposed_next_action: string;
   evidence: Evidence;
-  approved: boolean;
+  review_status: "pending" | "approved" | "rejected";
+  review_reason: string | null;
   caveats: string[];
 };
 
@@ -80,5 +81,13 @@ export const api = {
     request<Run>("/api/jobs", {
       method: "POST",
       body: JSON.stringify({ document_ids: documentIds }),
+    }),
+  reviewSignal: (signalId: string, decision: "approved" | "rejected") =>
+    request<Signal>(`/api/signals/${signalId}/review`, {
+      method: "POST",
+      body: JSON.stringify({
+        decision,
+        reason: "Evidence reviewed in the local prototype.",
+      }),
     }),
 };

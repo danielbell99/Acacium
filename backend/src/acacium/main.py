@@ -8,7 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from acacium.catalogue import find_document, load_manifest
 from acacium.pipeline.extract import extract_document
 from acacium.run_store import RunStore
-from acacium.schemas import ConfigResponse, DocumentList, Run, RunRequest, Signal
+from acacium.schemas import (
+    ConfigResponse,
+    DocumentList,
+    ReviewRequest,
+    Run,
+    RunRequest,
+    Signal,
+)
 from acacium.settings import get_settings
 
 settings = get_settings()
@@ -48,6 +55,14 @@ def documents() -> DocumentList:
 @app.get("/api/signals", response_model=list[Signal])
 def signals() -> list[Signal]:
     return store.signals()
+
+
+@app.post("/api/signals/{signal_id}/review", response_model=Signal)
+def review_signal(signal_id: str, request: ReviewRequest) -> Signal:
+    reviewed = store.review(signal_id, request)
+    if reviewed is None:
+        raise HTTPException(status_code=404, detail="Signal not found")
+    return reviewed
 
 
 @app.get("/api/jobs", response_model=list[Run])

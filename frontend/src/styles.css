@@ -4,6 +4,47 @@
   background: #f5f7f5;
   font-synthesis: none;
 }
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.review-actions button {
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.approve {
+  background: #e4f4e9;
+  color: #17633a;
+}
+.reject {
+  background: #fff0ed;
+  color: #a02d16;
+}
+.review-status {
+  font-size: 13px !important;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.status-approved {
+  color: #17633a !important;
+}
+.status-rejected {
+  color: #a02d16 !important;
+}
+.status-pending {
+  color: #805b00 !important;
+}
 * {
   box-sizing: border-box;
 }

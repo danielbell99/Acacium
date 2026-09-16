@@ -14,6 +14,12 @@ class RunStatus(StrEnum):
     FAILED = "failed"
 
 
+class ReviewStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
 class Evidence(BaseModel):
     document_id: str
     filename: str
@@ -34,7 +40,8 @@ class Signal(BaseModel):
     score_reasons: list[str]
     proposed_next_action: str
     evidence: Evidence
-    approved: bool = False
+    review_status: ReviewStatus = ReviewStatus.PENDING
+    review_reason: str | None = None
     caveats: list[str] = []
 
 
@@ -69,6 +76,11 @@ class DocumentList(BaseModel):
 class RunRequest(BaseModel):
     document_ids: list[str] = Field(min_length=1)
     as_of_date: str = "2026-09-16"
+
+
+class ReviewRequest(BaseModel):
+    decision: ReviewStatus
+    reason: str = Field(min_length=3, max_length=500)
 
 
 class RunProgress(BaseModel):
