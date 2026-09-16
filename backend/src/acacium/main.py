@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 
 from acacium.catalogue import find_document, load_manifest
+from acacium.integrity import SourceIntegrityError, verify_sha256
 from acacium.pipeline.extract import extract_document
 from acacium.review_store import ReviewStore
 from acacium.run_store import RunStore
@@ -66,6 +67,13 @@ def document_content(document_id: str) -> FileResponse:
     source_path = settings.documents_dir / document.filename
     if not source_path.is_file():
         raise HTTPException(status_code=404, detail="Local document copy is unavailable")
+    try:
+        verify_sha256(source_path, document.sha256)
+    except SourceIntegrityError as error:
+        raise HTTPException(
+            status_code=409,
+            detail="Local document copy fails source-integrity validation",
+        ) from error
     return FileResponse(source_path, media_type="application/pdf", filename=document.filename)
 
 
