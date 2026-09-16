@@ -40,6 +40,7 @@ def test_run_store_counts_candidates_and_keeps_top_twenty(tmp_path: Path) -> Non
         assert completed.progress.candidates_found == 25
         assert len(store.signals()) == 20
         assert store.signals()[0].score == 24
+        assert store.approved_signals() == []
     finally:
         store.close()
 
@@ -61,6 +62,7 @@ def test_review_decision_is_reapplied_to_a_fresh_extraction(tmp_path: Path) -> N
     try:
         assert second_store.signals()[0].review_status is ReviewStatus.APPROVED
         assert second_store.signals()[0].review_reason == "Evidence checked."
+        assert len(second_store.approved_signals()) == 1
     finally:
         first_store.close()
         second_store.close()

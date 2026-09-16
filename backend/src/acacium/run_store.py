@@ -5,7 +5,7 @@ from threading import Lock
 from uuid import uuid4
 
 from acacium.review_store import ReviewStore
-from acacium.schemas import ReviewRequest, Run, RunProgress, RunStatus, Signal
+from acacium.schemas import ReviewRequest, ReviewStatus, Run, RunProgress, RunStatus, Signal
 
 
 class RunStore:
@@ -68,6 +68,11 @@ class RunStore:
     def signals(self) -> list[Signal]:
         with self._lock:
             return sorted(self._signals.values(), key=lambda signal: (-signal.score, signal.id))
+
+    def approved_signals(self) -> list[Signal]:
+        return [
+            signal for signal in self.signals() if signal.review_status is ReviewStatus.APPROVED
+        ]
 
     def review(self, signal_id: str, request: ReviewRequest) -> Signal | None:
         with self._lock:

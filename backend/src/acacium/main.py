@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from csv import DictWriter
+from io import StringIO
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from acacium.catalogue import find_document, load_manifest
 from acacium.pipeline.extract import extract_document
@@ -70,6 +72,39 @@ def document_content(document_id: str) -> FileResponse:
 @app.get("/api/signals", response_model=list[Signal])
 def signals() -> list[Signal]:
     return store.signals()
+
+
+@app.get("/api/shortlist/export")
+def export_shortlist() -> Response:
+    buffer = StringIO()
+    fields = [
+        "organisation",
+        "category",
+        "service",
+        "score",
+        "period",
+        "source_page",
+        "next_action",
+    ]
+    writer = DictWriter(buffer, fieldnames=fields, lineterminator="\n")
+    writer.writeheader()
+    for signal in store.approved_signals():
+        writer.writerow(
+            {
+                "organisation": signal.organisation,
+                "category": signal.category,
+                "service": signal.service,
+                "score": signal.score,
+                "period": signal.reporting_period or "",
+                "source_page": signal.evidence.physical_page,
+                "next_action": signal.proposed_next_action,
+            }
+        )
+    return Response(
+        buffer.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=acacium-approved-shortlist.csv"},
+    )
 
 
 @app.post("/api/signals/{signal_id}/review", response_model=Signal)

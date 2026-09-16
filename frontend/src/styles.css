@@ -123,6 +123,20 @@ button {
   cursor: pointer;
   border-radius: 5px;
 }
+
+.export-button {
+  align-items: center;
+  border: 1px solid #0a3b35;
+  border-radius: 5px;
+  color: #0a3b35;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  text-decoration: none;
+}
 .run-button:disabled {
   background: #bdc7c2;
   cursor: wait;

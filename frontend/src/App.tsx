@@ -6,6 +6,7 @@ import {
   Play,
   RefreshCw,
   ShieldCheck,
+  Download,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
@@ -90,6 +91,9 @@ function EvidencePanel({
           >
             <ThumbsUp size={15} aria-hidden="true" /> Approve
           </button>
+          <a className="export-button" href="/api/shortlist/export" download>
+            <Download size={17} aria-hidden="true" /> Export approved
+          </a>
           <button
             className="reject"
             disabled={reviewing}
