@@ -87,25 +87,36 @@ def signals() -> list[Signal]:
 def export_shortlist() -> Response:
     buffer = StringIO()
     fields = [
+        "rank",
         "organisation",
         "category",
         "service",
         "score",
         "period",
+        "source_document",
         "source_page",
+        "source_url",
+        "evidence_excerpt",
+        "review_reason",
         "next_action",
     ]
     writer = DictWriter(buffer, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
-    for signal in store.approved_signals():
+    for rank, signal in enumerate(store.approved_signals(), start=1):
+        document = find_document(manifest, signal.evidence.document_id)
         writer.writerow(
             {
+                "rank": rank,
                 "organisation": signal.organisation,
                 "category": signal.category,
                 "service": signal.service,
                 "score": signal.score,
                 "period": signal.reporting_period or "",
+                "source_document": signal.evidence.filename,
                 "source_page": signal.evidence.physical_page,
+                "source_url": document.source_url,
+                "evidence_excerpt": signal.evidence.excerpt,
+                "review_reason": signal.review_reason or "",
                 "next_action": signal.proposed_next_action,
             }
         )

@@ -39,6 +39,9 @@ The local SQLite runtime store retains the latest completed shortlist, its run h
 decisions across a service restart. An in-progress run interrupted by a restart is marked failed;
 the operator can re-run the unchanged source corpus explicitly.
 
+Approved shortlists export as CSV with rank, original PDF and page, public source URL, evidence
+excerpt and the reviewer rationale alongside the recommended next action.
+
 ## Quality checks
 
 ```sh

@@ -22,3 +22,14 @@ def test_document_content_serves_the_hash_verified_pdf() -> None:
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/pdf"
+
+
+def test_shortlist_export_keeps_evidence_audit_columns() -> None:
+    response = TestClient(app).get("/api/shortlist/export")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "text/csv; charset=utf-8"
+    assert response.text.startswith(
+        "rank,organisation,category,service,score,period,source_document,source_page,"
+        "source_url,evidence_excerpt,review_reason,next_action\n"
+    )
