@@ -28,13 +28,25 @@ class RunStore:
             else {}
         )
 
-    def create(self, document_ids: list[str]) -> Run:
+    def create(
+        self,
+        document_ids: list[str],
+        *,
+        as_of_date: str,
+        rubric_version: str,
+        source_manifest_version: str,
+        service_catalogue_version: str,
+    ) -> Run:
         run = Run(
             id=str(uuid4()),
             status=RunStatus.QUEUED,
             created_at=datetime.now(UTC),
             document_ids=document_ids,
             progress=RunProgress(),
+            as_of_date=as_of_date,
+            rubric_version=rubric_version,
+            source_manifest_version=source_manifest_version,
+            service_catalogue_version=service_catalogue_version,
         )
         with self._lock:
             self._runs[run.id] = run

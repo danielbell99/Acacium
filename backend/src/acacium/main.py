@@ -27,6 +27,7 @@ settings = get_settings()
 manifest = load_manifest(settings.manifest_path)
 service_catalogue = load_service_catalogue(settings.service_catalogue_path)
 store = RunStore(ReviewStore(settings.review_database_path))
+RUBRIC_VERSION = "2026-09-16"
 
 app = FastAPI(title="Acacium Board Paper Intelligence", version="0.1.0")
 app.add_middleware(
@@ -63,7 +64,7 @@ def ready() -> dict[str, str]:
 def config() -> ConfigResponse:
     return ConfigResponse(
         demo_mode=settings.demo_mode,
-        rubric_version="2026-09-16",
+        rubric_version=RUBRIC_VERSION,
         source_manifest_version=manifest.manifest_version,
         score_formula="(35*fit + 25*need + 25*timing + 15*specificity) / 2",
     )
@@ -169,7 +170,13 @@ def start_job(request: RunRequest, background_tasks: BackgroundTasks) -> Run:
     unknown = set(request.document_ids) - {document.id for document in manifest.documents}
     if unknown:
         raise HTTPException(status_code=422, detail=f"Unknown document IDs: {sorted(unknown)}")
-    run = store.create(request.document_ids)
+    run = store.create(
+        request.document_ids,
+        as_of_date=request.as_of_date,
+        rubric_version=RUBRIC_VERSION,
+        source_manifest_version=manifest.manifest_version,
+        service_catalogue_version=service_catalogue.version,
+    )
     background_tasks.add_task(_run_extraction, run.id, request.document_ids)
     return run
 

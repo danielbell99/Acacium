@@ -292,6 +292,7 @@ export default function App() {
                 <tr>
                   <th>Started</th>
                   <th>Corpus</th>
+                  <th>Provenance</th>
                   <th>Status</th>
                   <th>Signals found</th>
                 </tr>
@@ -301,6 +302,13 @@ export default function App() {
                   <tr key={job.id}>
                     <td>{formatTimestamp(job.created_at)}</td>
                     <td>{job.document_ids.length} source packs</td>
+                    <td>
+                      <span
+                        title={`As of ${job.as_of_date}; rubric ${job.rubric_version}; service catalogue ${job.service_catalogue_version}`}
+                      >
+                        manifest {job.source_manifest_version}
+                      </span>
+                    </td>
                     <td>
                       <span className={`run-status run-${job.status}`}>
                         {job.status.replaceAll("_", " ")}

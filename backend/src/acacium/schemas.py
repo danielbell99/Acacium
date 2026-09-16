@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -87,7 +87,7 @@ class ServiceCatalogue(BaseModel):
 
 class RunRequest(BaseModel):
     document_ids: list[str] = Field(min_length=1)
-    as_of_date: str = "2026-09-16"
+    as_of_date: str = Field(default_factory=lambda: datetime.now(UTC).date().isoformat())
 
 
 class ReviewRequest(BaseModel):
@@ -108,6 +108,10 @@ class Run(BaseModel):
     completed_at: datetime | None = None
     document_ids: list[str]
     progress: RunProgress
+    as_of_date: str = "unknown"
+    rubric_version: str = "unknown"
+    source_manifest_version: str = "unknown"
+    service_catalogue_version: str = "unknown"
     error: str | None = None
 
 

@@ -54,6 +54,10 @@ export type Run = {
     processed_pages: number;
     candidates_found: number;
   };
+  as_of_date: string;
+  rubric_version: string;
+  source_manifest_version: string;
+  service_catalogue_version: string;
   error: string | null;
 };
 

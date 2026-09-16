@@ -4,6 +4,13 @@ from acacium.review_store import ReviewStore
 from acacium.run_store import RunStore
 from acacium.schemas import Evidence, ReviewRequest, ReviewStatus, RunStatus, Signal
 
+RUN_PROVENANCE = {
+    "as_of_date": "2026-09-16",
+    "rubric_version": "2026-09-16",
+    "source_manifest_version": "1.0",
+    "service_catalogue_version": "2026-09-16",
+}
+
 
 def _signal(identifier: str, score: float) -> Signal:
     return Signal(
@@ -29,7 +36,7 @@ def _signal(identifier: str, score: float) -> Signal:
 def test_run_store_counts_candidates_and_keeps_top_twenty(tmp_path: Path) -> None:
     store = RunStore(ReviewStore(tmp_path / "reviews.sqlite3"))
     try:
-        run = store.create(["example"])
+        run = store.create(["example"], **RUN_PROVENANCE)
         store.begin(run.id, selected_pages=1)
         candidates = [_signal(f"signal-{index}", float(index)) for index in range(25)]
         store.record_page(run.id, candidates)
@@ -38,6 +45,9 @@ def test_run_store_counts_candidates_and_keeps_top_twenty(tmp_path: Path) -> Non
         completed = store.get(run.id)
         assert completed is not None
         assert completed.progress.candidates_found == 25
+        assert completed.as_of_date == "2026-09-16"
+        assert completed.source_manifest_version == "1.0"
+        assert completed.service_catalogue_version == "2026-09-16"
         assert len(store.signals()) == 20
         assert store.signals()[0].score == 24
         assert store.approved_signals() == []
@@ -89,7 +99,7 @@ def test_completed_run_and_shortlist_survive_a_restart(tmp_path: Path) -> None:
 def test_in_progress_run_is_marked_failed_after_a_restart(tmp_path: Path) -> None:
     database_path = tmp_path / "reviews.sqlite3"
     first_store = RunStore(ReviewStore(database_path))
-    run = first_store.create(["example"])
+    run = first_store.create(["example"], **RUN_PROVENANCE)
     first_store.begin(run.id, selected_pages=1)
     first_store.close()
 
@@ -104,7 +114,7 @@ def test_in_progress_run_is_marked_failed_after_a_restart(tmp_path: Path) -> Non
 
 
 def _complete(store: RunStore, signal: Signal) -> None:
-    run = store.create(["example"])
+    run = store.create(["example"], **RUN_PROVENANCE)
     store.begin(run.id, selected_pages=1)
     store.record_page(run.id, [signal])
     store.complete(run.id, [signal])
