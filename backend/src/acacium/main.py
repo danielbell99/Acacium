@@ -43,6 +43,22 @@ def live() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/health/ready")
+def ready() -> dict[str, str]:
+    try:
+        for document in manifest.documents:
+            source_path = settings.documents_dir / document.filename
+            if not source_path.is_file():
+                raise FileNotFoundError(document.filename)
+            verify_sha256(source_path, document.sha256)
+    except (FileNotFoundError, SourceIntegrityError) as error:
+        raise HTTPException(
+            status_code=503,
+            detail="The declared local evidence corpus is not ready.",
+        ) from error
+    return {"status": "ready"}
+
+
 @app.get("/api/config", response_model=ConfigResponse)
 def config() -> ConfigResponse:
     return ConfigResponse(

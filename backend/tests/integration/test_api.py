@@ -1,3 +1,5 @@
+from acacium import main
+from acacium.integrity import SourceIntegrityError
 from acacium.main import app
 from fastapi.testclient import TestClient
 
@@ -9,6 +11,25 @@ def test_documents_endpoint_returns_the_scoped_corpus() -> None:
     body = response.json()
     assert body["selected_report_page_count"] == 105
     assert len(body["documents"]) == 3
+
+
+def test_readiness_confirms_the_local_evidence_corpus() -> None:
+    response = TestClient(app).get("/api/health/ready")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ready"}
+
+
+def test_readiness_rejects_a_source_integrity_failure(monkeypatch) -> None:
+    def reject_source(*_args, **_kwargs) -> None:
+        raise SourceIntegrityError("test source mismatch")
+
+    monkeypatch.setattr(main, "verify_sha256", reject_source)
+
+    response = TestClient(app).get("/api/health/ready")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "The declared local evidence corpus is not ready."
 
 
 def test_unknown_document_content_returns_not_found() -> None:

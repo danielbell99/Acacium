@@ -18,6 +18,9 @@ Open `http://localhost:5173`. The API runs on loopback port `8000`; Vite proxies
 Port `1000` is reserved by this Mac's local policy and needs the planned administrator-installed
 loopback proxy before it can become the public development address.
 
+`/api/health/live` reports process health. `/api/health/ready` additionally verifies that every
+declared board pack is present and matches its tracked SHA-256 digest.
+
 ## Included local inputs
 
 The ignored `data/documents/` directory contains the three preserved public board packs used for
