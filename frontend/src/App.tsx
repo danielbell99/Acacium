@@ -340,6 +340,8 @@ export default function App() {
                     <td>
                       {job.id === latestCompletedRun?.id ? (
                         <span className="current-run">Current</span>
+                      ) : !job.snapshot_available ? (
+                        <span className="legacy-run">Unavailable</span>
                       ) : (
                         <button
                           className="history-button"

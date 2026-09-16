@@ -277,6 +277,11 @@ button {
   font-size: 12px;
   font-weight: 700;
 }
+.legacy-run {
+  color: #805b00;
+  font-size: 12px;
+  font-weight: 700;
+}
 .run-status {
   font-size: 12px;
   font-weight: 700;

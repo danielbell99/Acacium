@@ -128,6 +128,13 @@ class ReviewStore:
             ]
         return self.apply(signals)
 
+    def signal_count(self, run_id: str) -> int:
+        with self._lock:
+            row = self._connection.execute(
+                "SELECT COUNT(*) FROM extracted_signals WHERE run_id = ?", (run_id,)
+            ).fetchone()
+        return int(row[0])
+
     def update_signal(self, signal: Signal) -> None:
         with self._lock:
             self._connection.execute(

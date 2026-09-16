@@ -112,6 +112,7 @@ class Run(BaseModel):
     rubric_version: str = "unknown"
     source_manifest_version: str = "unknown"
     service_catalogue_version: str = "unknown"
+    snapshot_available: bool = False
     error: str | None = None
 
 

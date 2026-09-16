@@ -58,6 +58,7 @@ export type Run = {
   rubric_version: string;
   source_manifest_version: string;
   service_catalogue_version: string;
+  snapshot_available: boolean;
   error: string | null;
 };
 

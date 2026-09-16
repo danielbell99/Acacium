@@ -58,6 +58,7 @@ def test_run_store_counts_candidates_and_keeps_top_twenty(tmp_path: Path) -> Non
         assert completed.as_of_date == "2026-09-16"
         assert completed.source_manifest_version == "1.0"
         assert completed.service_catalogue_version == "2026-09-16"
+        assert completed.snapshot_available
         assert len(store.signals()) == 20
         assert len(store.signals_for_run(run.id) or []) == 20
         assert store.signals()[0].score == 24
@@ -102,6 +103,7 @@ def test_completed_run_and_shortlist_survive_a_restart(tmp_path: Path) -> None:
         recovered = second_store.get(run.id)
         assert recovered is not None
         assert recovered.status is RunStatus.COMPLETED
+        assert recovered.snapshot_available
         assert [stored.id for stored in second_store.signals()] == [signal.id]
     finally:
         second_store.close()
@@ -130,6 +132,30 @@ def test_unknown_run_has_no_retained_signal_snapshot(tmp_path: Path) -> None:
         assert store.signals_for_run("unknown-run") is None
     finally:
         store.close()
+
+
+def test_recovered_legacy_run_without_snapshot_is_marked_unavailable(tmp_path: Path) -> None:
+    database_path = tmp_path / "reviews.sqlite3"
+    reviews = ReviewStore(database_path)
+    run = Run(
+        id="legacy-without-snapshot",
+        status=RunStatus.COMPLETED,
+        created_at=datetime.now(UTC),
+        completed_at=datetime.now(UTC),
+        document_ids=["example"],
+        progress=RunProgress(selected_pages=1, processed_pages=1, candidates_found=1),
+        **RUN_PROVENANCE,
+    )
+    reviews.save_run(run)
+    reviews.close()
+
+    second_store = RunStore(ReviewStore(database_path))
+    try:
+        recovered = second_store.get(run.id)
+        assert recovered is not None
+        assert not recovered.snapshot_available
+    finally:
+        second_store.close()
 
 
 def test_identical_signals_are_retained_for_each_completed_run(tmp_path: Path) -> None:
