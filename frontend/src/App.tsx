@@ -18,6 +18,13 @@ function scoreClass(score: number): string {
   return "score score-low";
 }
 
+function formatTimestamp(timestamp: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(timestamp));
+}
+
 function EvidencePanel({
   signal,
   onReview,
@@ -172,6 +179,7 @@ export default function App() {
   const activeRun = jobs.data?.find(
     (job) => job.status === "queued" || job.status === "running",
   );
+  const recentRuns = useMemo(() => (jobs.data ?? []).slice(0, 3), [jobs.data]);
 
   return (
     <main>
@@ -220,6 +228,41 @@ export default function App() {
               : "No active run"}
           </span>
         </div>
+        {recentRuns.length > 0 ? (
+          <section
+            className="run-history"
+            aria-label="Recent extraction history"
+          >
+            <div className="run-history-heading">
+              <p className="eyebrow">Recent extractions</p>
+              <span>{recentRuns.length} retained locally</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Started</th>
+                  <th>Corpus</th>
+                  <th>Status</th>
+                  <th>Signals found</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentRuns.map((job) => (
+                  <tr key={job.id}>
+                    <td>{formatTimestamp(job.created_at)}</td>
+                    <td>{job.document_ids.length} source packs</td>
+                    <td>
+                      <span className={`run-status run-${job.status}`}>
+                        {job.status.replaceAll("_", " ")}
+                      </span>
+                    </td>
+                    <td>{job.progress.candidates_found}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ) : null}
         {signals.isError ? (
           <p className="error">
             The API is not available yet. Start the local services and refresh

@@ -187,6 +187,50 @@ button {
   border-left: 1px solid #d6dfdb;
   padding-left: 24px;
 }
+.run-history {
+  border: 1px solid #d6dfdb;
+  margin: 0 0 22px;
+  overflow-x: auto;
+}
+.run-history-heading {
+  align-items: center;
+  background: #eef3f0;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+.run-history-heading .eyebrow {
+  margin: 0;
+}
+.run-history-heading span {
+  color: #52625d;
+  font-size: 13px;
+}
+.run-history th,
+.run-history td {
+  padding: 10px 14px;
+}
+.run-history tbody tr {
+  cursor: default;
+}
+.run-history tbody tr:hover {
+  background: transparent;
+}
+.run-status {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.run-completed {
+  color: #17633a;
+}
+.run-failed {
+  color: #a02d16;
+}
+.run-running,
+.run-queued {
+  color: #805b00;
+}
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.9fr);
@@ -352,6 +396,11 @@ tbody tr.selected {
   .coverage-strip span + span {
     border-left: 0;
     padding-left: 0;
+  }
+  .run-history-heading {
+    align-items: flex-start;
+    gap: 6px;
+    flex-direction: column;
   }
   .mode {
     font-size: 12px;
