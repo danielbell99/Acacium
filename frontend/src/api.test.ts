@@ -45,4 +45,18 @@ describe("API client", () => {
       }),
     );
   });
+
+  it("requests a retained run evidence snapshot", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.runSignals("run-123");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/jobs/run-123/signals",
+      expect.any(Object),
+    );
+  });
 });

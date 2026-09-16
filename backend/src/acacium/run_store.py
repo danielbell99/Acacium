@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from threading import Lock
 from uuid import uuid4
@@ -96,7 +97,13 @@ class RunStore:
 
     def signals(self) -> list[Signal]:
         with self._lock:
-            return sorted(self._signals.values(), key=lambda signal: (-signal.score, signal.id))
+            return self._sort_signals(self._signals.values())
+
+    def signals_for_run(self, run_id: str) -> list[Signal] | None:
+        with self._lock:
+            if run_id not in self._runs:
+                return None
+            return self._sort_signals(self._review_store.load_signals(run_id))
 
     def approved_signals(self) -> list[Signal]:
         return [
@@ -116,3 +123,7 @@ class RunStore:
 
     def close(self) -> None:
         self._review_store.close()
+
+    @staticmethod
+    def _sort_signals(signals: Iterable[Signal]) -> list[Signal]:
+        return sorted(signals, key=lambda signal: (-signal.score, signal.id))

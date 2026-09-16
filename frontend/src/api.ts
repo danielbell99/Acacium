@@ -81,6 +81,7 @@ export const api = {
   documents: () => request<DocumentResponse>("/api/documents"),
   signals: () => request<Signal[]>("/api/signals"),
   jobs: () => request<Run[]>("/api/jobs"),
+  runSignals: (runId: string) => request<Signal[]>(`/api/jobs/${runId}/signals`),
   startRun: (documentIds: string[]) =>
     request<Run>("/api/jobs", {
       method: "POST",

@@ -7,6 +7,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Download,
+  Eye,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
@@ -31,12 +32,14 @@ function EvidencePanel({
   reviewReason,
   onReviewReasonChange,
   reviewing,
+  readOnly,
 }: {
   signal: Signal | undefined;
   onReview: (decision: "approved" | "rejected", reason: string) => void;
   reviewReason: string;
   onReviewReasonChange: (reason: string) => void;
   reviewing: boolean;
+  readOnly: boolean;
 }) {
   if (!signal) {
     return (
@@ -97,35 +100,41 @@ function EvidencePanel({
         {signal.review_reason ? (
           <p className="saved-review-reason">{signal.review_reason}</p>
         ) : null}
-        <label className="review-reason" htmlFor="review-reason">
-          Reviewer rationale
-          <textarea
-            id="review-reason"
-            value={reviewReason}
-            onChange={(event) => onReviewReasonChange(event.target.value)}
-            maxLength={500}
-            placeholder="State why the evidence should be approved or rejected."
-          />
-        </label>
-        <div className="review-actions">
-          <button
-            className="approve"
-            disabled={reviewing || reviewReason.trim().length < 3}
-            onClick={() => onReview("approved", reviewReason.trim())}
-          >
-            <ThumbsUp size={15} aria-hidden="true" /> Approve
-          </button>
-          <a className="export-button" href="/api/shortlist/export" download>
-            <Download size={17} aria-hidden="true" /> Export approved
-          </a>
-          <button
-            className="reject"
-            disabled={reviewing || reviewReason.trim().length < 3}
-            onClick={() => onReview("rejected", reviewReason.trim())}
-          >
-            <ThumbsDown size={15} aria-hidden="true" /> Reject
-          </button>
-        </div>
+        {readOnly ? (
+          <p className="historical-note">Retained historical snapshot.</p>
+        ) : (
+          <>
+            <label className="review-reason" htmlFor="review-reason">
+              Reviewer rationale
+              <textarea
+                id="review-reason"
+                value={reviewReason}
+                onChange={(event) => onReviewReasonChange(event.target.value)}
+                maxLength={500}
+                placeholder="State why the evidence should be approved or rejected."
+              />
+            </label>
+            <div className="review-actions">
+              <button
+                className="approve"
+                disabled={reviewing || reviewReason.trim().length < 3}
+                onClick={() => onReview("approved", reviewReason.trim())}
+              >
+                <ThumbsUp size={15} aria-hidden="true" /> Approve
+              </button>
+              <a className="export-button" href="/api/shortlist/export" download>
+                <Download size={17} aria-hidden="true" /> Export approved
+              </a>
+              <button
+                className="reject"
+                disabled={reviewing || reviewReason.trim().length < 3}
+                onClick={() => onReview("rejected", reviewReason.trim())}
+              >
+                <ThumbsDown size={15} aria-hidden="true" /> Reject
+              </button>
+            </div>
+          </>
+        )}
       </section>
       <p className="caveat">
         <AlertCircle size={15} aria-hidden="true" /> {signal.caveats[0]}
@@ -137,6 +146,7 @@ function EvidencePanel({
 export default function App() {
   const client = useQueryClient();
   const [selectedId, setSelectedId] = useState<string>();
+  const [historicalRunId, setHistoricalRunId] = useState<string>();
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>();
   const [reviewReason, setReviewReason] = useState("");
   const documents = useQuery({
@@ -152,6 +162,11 @@ export default function App() {
     queryKey: ["jobs"],
     queryFn: api.jobs,
     refetchInterval: 2500,
+  });
+  const historicalSignals = useQuery({
+    queryKey: ["run-signals", historicalRunId],
+    queryFn: () => api.runSignals(historicalRunId as string),
+    enabled: Boolean(historicalRunId),
   });
   const run = useMutation({
     mutationFn: api.startRun,
@@ -170,9 +185,13 @@ export default function App() {
     onSuccess: () => void client.invalidateQueries({ queryKey: ["signals"] }),
   });
 
+  const displayedSignals = useMemo(
+    () => historicalSignals.data ?? signals.data ?? [],
+    [historicalSignals.data, signals.data],
+  );
   const shortlist = useMemo(
-    () => (signals.data ?? []).filter((signal) => signal.score >= 70),
-    [signals.data],
+    () => displayedSignals.filter((signal) => signal.score >= 70),
+    [displayedSignals],
   );
   const selected =
     shortlist.find((signal) => signal.id === selectedId) ?? shortlist[0];
@@ -180,6 +199,8 @@ export default function App() {
   const activeRun = jobs.data?.find(
     (job) => job.status === "queued" || job.status === "running",
   );
+  const latestCompletedRun = jobs.data?.find((job) => job.status === "completed");
+  const historicalRun = jobs.data?.find((job) => job.id === historicalRunId);
   const recentRuns = useMemo(() => (jobs.data ?? []).slice(0, 3), [jobs.data]);
   const selectedDocuments = useMemo(() => {
     const available = documents.data?.documents ?? [];
@@ -295,6 +316,7 @@ export default function App() {
                   <th>Provenance</th>
                   <th>Status</th>
                   <th>Signals found</th>
+                  <th>Evidence</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,20 +337,45 @@ export default function App() {
                       </span>
                     </td>
                     <td>{job.progress.candidates_found}</td>
+                    <td>
+                      {job.id === latestCompletedRun?.id ? (
+                        <span className="current-run">Current</span>
+                      ) : (
+                        <button
+                          className="history-button"
+                          type="button"
+                          onClick={() => {
+                            setHistoricalRunId(
+                              historicalRunId === job.id ? undefined : job.id,
+                            );
+                            setSelectedId(undefined);
+                            setReviewReason("");
+                          }}
+                        >
+                          <Eye size={15} aria-hidden="true" />
+                          {historicalRunId === job.id ? "Current" : "View"}
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </section>
         ) : null}
-        {signals.isError ? (
-          <p className="error">
+        {signals.isError || historicalSignals.isError ? (
+            <p className="error">
             The API is not available yet. Start the local services and refresh
             this page.
           </p>
         ) : null}
         <div className="content-grid">
           <section className="shortlist" aria-label="Ranked shortlist">
+            {historicalRun ? (
+              <p className="historical-banner">
+                Viewing retained evidence from {formatTimestamp(historicalRun.created_at)}
+              </p>
+            ) : null}
             <table>
               <thead>
                 <tr>
@@ -360,7 +407,7 @@ export default function App() {
                     </td>
                   </tr>
                 ))}
-                {!signals.isLoading && shortlist.length === 0 ? (
+                {!signals.isLoading && !historicalSignals.isLoading && shortlist.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="empty">
                       Run the selected corpus to generate reviewable candidates.
@@ -373,6 +420,7 @@ export default function App() {
           <EvidencePanel
             signal={selected}
             reviewing={review.isPending}
+            readOnly={Boolean(historicalRun)}
             reviewReason={reviewReason}
             onReviewReasonChange={setReviewReason}
             onReview={(decision, reason) =>

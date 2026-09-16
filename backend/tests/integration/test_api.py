@@ -38,6 +38,12 @@ def test_unknown_document_content_returns_not_found() -> None:
     assert response.status_code == 404
 
 
+def test_unknown_run_signals_returns_not_found() -> None:
+    response = TestClient(app).get("/api/jobs/unknown-run/signals")
+
+    assert response.status_code == 404
+
+
 def test_document_content_serves_the_hash_verified_pdf() -> None:
     response = TestClient(app).get("/api/documents/west-herts-2026-09-10/content")
 

@@ -258,6 +258,25 @@ button {
 .run-history tbody tr:hover {
   background: transparent;
 }
+.history-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #8aa39a;
+  border-radius: 4px;
+  color: #0a5b50;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 8px;
+}
+.current-run {
+  color: #52625d;
+  font-size: 12px;
+  font-weight: 700;
+}
 .run-status {
   font-size: 12px;
   font-weight: 700;
@@ -283,6 +302,18 @@ button {
   background: white;
   border: 1px solid #d6dfdb;
   overflow-x: auto;
+}
+.historical-banner,
+.historical-note {
+  background: #fff7e5;
+  color: #765400;
+  font-size: 13px;
+  margin: 0;
+  padding: 10px 14px;
+}
+.historical-note {
+  margin-top: 12px;
+  padding: 8px 10px;
 }
 table {
   width: 100%;

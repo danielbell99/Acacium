@@ -39,14 +39,16 @@ class ReviewStore:
         self._connection.execute(
             """
             CREATE TABLE IF NOT EXISTS extracted_signals (
-                signal_id TEXT PRIMARY KEY,
+                signal_id TEXT NOT NULL,
                 run_id TEXT NOT NULL,
                 payload_json TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                PRIMARY KEY(run_id, signal_id),
                 FOREIGN KEY(run_id) REFERENCES extraction_runs(run_id)
             )
             """
         )
+        self._migrate_signal_snapshot_key()
         self._connection.commit()
 
     def apply(self, signals: list[Signal]) -> list[Signal]:
@@ -105,8 +107,7 @@ class ReviewStore:
                 """
                 INSERT INTO extracted_signals (signal_id, run_id, payload_json, created_at)
                 VALUES (?, ?, ?, ?)
-                ON CONFLICT(signal_id) DO UPDATE SET
-                    run_id = excluded.run_id,
+                ON CONFLICT(run_id, signal_id) DO UPDATE SET
                     payload_json = excluded.payload_json,
                     created_at = excluded.created_at
                 """,
@@ -146,6 +147,34 @@ class ReviewStore:
             """,
             (run.id, run.model_dump_json(), datetime.now(UTC).isoformat()),
         )
+
+    def _migrate_signal_snapshot_key(self) -> None:
+        primary_key_columns = {
+            row[1]: row[5]
+            for row in self._connection.execute("PRAGMA table_info(extracted_signals)")
+        }
+        if primary_key_columns.get("signal_id") != 1 or primary_key_columns.get("run_id"):
+            return
+        self._connection.execute(
+            """
+            CREATE TABLE extracted_signals_v2 (
+                signal_id TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY(run_id, signal_id),
+                FOREIGN KEY(run_id) REFERENCES extraction_runs(run_id)
+            )
+            """
+        )
+        self._connection.execute(
+            """
+            INSERT INTO extracted_signals_v2 (signal_id, run_id, payload_json, created_at)
+            SELECT signal_id, run_id, payload_json, created_at FROM extracted_signals
+            """
+        )
+        self._connection.execute("DROP TABLE extracted_signals")
+        self._connection.execute("ALTER TABLE extracted_signals_v2 RENAME TO extracted_signals")
 
     def close(self) -> None:
         with self._lock:

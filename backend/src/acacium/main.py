@@ -165,6 +165,14 @@ def job(run_id: str) -> Run:
     return stored
 
 
+@app.get("/api/jobs/{run_id}/signals", response_model=list[Signal])
+def job_signals(run_id: str) -> list[Signal]:
+    extracted = store.signals_for_run(run_id)
+    if extracted is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return extracted
+
+
 @app.post("/api/jobs", response_model=Run, status_code=202)
 def start_job(request: RunRequest, background_tasks: BackgroundTasks) -> Run:
     unknown = set(request.document_ids) - {document.id for document in manifest.documents}
