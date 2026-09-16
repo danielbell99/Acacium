@@ -1,0 +1,77 @@
+{
+  "manifest_version": "1.0",
+  "retrieved_on": "2026-09-16",
+  "page_numbering": "one_based_physical_pdf_pages_inclusive",
+  "full_pack_page_count": 1319,
+  "selected_report_page_count": 105,
+  "documents": [
+    {
+      "id": "west-herts-2026-09-10",
+      "organisation": "West Hertfordshire Teaching Hospitals NHS Trust",
+      "meeting_date": "2026-09-10",
+      "filename": "01-West-Hertfordshire-Board-2026-09-10.pdf",
+      "source_url": "https://www.westhertshospitals.nhs.uk/download_file/af9daef9-c7b3-4f35-a61e-e8fc531f32a7/368",
+      "listing_url": "https://www.westhertshospitals.nhs.uk/about-us/our-board/board-papers",
+      "byte_count": 27965798,
+      "page_count": 406,
+      "sha256": "37cb4070d03e9efe542bf7e6a9c8a386a7045ed25c9dce353d3b5af7d9e6f3c2",
+      "scope": {
+        "report_title": "Bi-annual Review of Maternity and Neonatal Workforce",
+        "agenda_item": "5.1.3",
+        "first_physical_page": 225,
+        "last_physical_page": 236,
+        "page_count": 12,
+        "reporting_period": "Mixed periods; preserve passage-level dates and cover-date ambiguity",
+        "layout": "Portrait narrative with staffing statements and embedded chart",
+        "evaluation_partition": "calibration"
+      },
+      "reference_pages": [228, 236],
+      "optional_regression_pages_outside_scope": [113]
+    },
+    {
+      "id": "airedale-2026-09-02",
+      "organisation": "Airedale NHS Foundation Trust",
+      "meeting_date": "2026-09-02",
+      "filename": "02-Airedale-Board-2026-09-02.pdf",
+      "source_url": "https://www.airedale-trust.nhs.uk/wp-content/uploads/2026/09/Trust-Board-of-Directors-Public-meeting-2-September-2026-FINAL.pdf",
+      "listing_url": "https://www.airedale-trust.nhs.uk/about-us/our-board-and-leadership/",
+      "byte_count": 28572134,
+      "page_count": 658,
+      "sha256": "77517fcc924dfda2538eecea1ebfc5980b0c4aee6835224c9b175d02e3d56687",
+      "scope": {
+        "report_title": "Integrated Performance Report, August 2026 (July 2026 data)",
+        "first_physical_page": 221,
+        "last_physical_page": 290,
+        "page_count": 70,
+        "reporting_period": "2026-07, with historical comparators and some narrative referring to June",
+        "layout": "Landscape dashboards and monthly finance tables",
+        "evaluation_partition": "held_out_from_prompt_tuning"
+      },
+      "reference_pages": [261, 263, 282, 288],
+      "optional_regression_pages_outside_scope": []
+    },
+    {
+      "id": "sath-2026-08-13",
+      "organisation": "The Shrewsbury and Telford Hospital NHS Trust",
+      "meeting_date": "2026-08-13",
+      "filename": "03-SaTH-Boards-in-Common-2026-08-13.pdf",
+      "source_url": "https://www.sath.nhs.uk/wp-content/uploads/2026/08/01-PUBLIC-BOARDS-IN-COMMON-13.08.26-COMBINED-PAPERS.pdf",
+      "listing_url": "https://www.sath.nhs.uk/about-us/trust-information/board-papers/",
+      "byte_count": 13854540,
+      "page_count": 255,
+      "sha256": "74dd0366a5eb49570b51960972693c07a47d09905d941b279ed2bd944b42bd01",
+      "scope": {
+        "report_title": "SaTH Board Assurance Framework - Quarter 1, 2026/27",
+        "agenda_item": "071/26b",
+        "first_physical_page": 209,
+        "last_physical_page": 231,
+        "page_count": 23,
+        "reporting_period": "Quarter 1 2026/27; appendix includes historical updates",
+        "layout": "Wide multi-column risk register",
+        "evaluation_partition": "calibration"
+      },
+      "reference_pages": [218, 220],
+      "optional_regression_pages_outside_scope": [65]
+    }
+  ]
+}
