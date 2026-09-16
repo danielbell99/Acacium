@@ -9,3 +9,9 @@ def test_documents_endpoint_returns_the_scoped_corpus() -> None:
     body = response.json()
     assert body["selected_report_page_count"] == 105
     assert len(body["documents"]) == 3
+
+
+def test_unknown_document_content_returns_not_found() -> None:
+    response = TestClient(app).get("/api/documents/unknown/content")
+
+    assert response.status_code == 404

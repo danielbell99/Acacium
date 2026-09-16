@@ -52,6 +52,14 @@ function EvidencePanel({
           <FileText size={15} aria-hidden="true" /> {signal.evidence.filename},
           physical page {signal.evidence.physical_page}
         </p>
+        <a
+          className="evidence-link"
+          href={`/api/documents/${signal.evidence.document_id}/content#page=${signal.evidence.physical_page}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open original PDF
+        </a>
       </section>
       <section>
         <h3>Interpretation</h3>

@@ -258,6 +258,14 @@ tbody tr.selected {
   color: #52625d;
   font-size: 12px !important;
 }
+
+.evidence-link {
+  color: #0a5b50;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+}
 .caveat {
   background: #fff7e5;
   color: #765400 !important;

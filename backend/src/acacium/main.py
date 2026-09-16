@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from acacium.catalogue import find_document, load_manifest
 from acacium.pipeline.extract import extract_document
@@ -51,6 +52,19 @@ def config() -> ConfigResponse:
 @app.get("/api/documents", response_model=DocumentList)
 def documents() -> DocumentList:
     return manifest
+
+
+@app.get("/api/documents/{document_id}/content")
+def document_content(document_id: str) -> FileResponse:
+    try:
+        document = find_document(manifest, document_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="Document not found") from error
+
+    source_path = settings.documents_dir / document.filename
+    if not source_path.is_file():
+        raise HTTPException(status_code=404, detail="Local document copy is unavailable")
+    return FileResponse(source_path, media_type="application/pdf", filename=document.filename)
 
 
 @app.get("/api/signals", response_model=list[Signal])
